@@ -1,1 +1,1 @@
-Project that webscrapes data off fantasydata.com and then uses a machine learning algorithm to predict next year's winners for fantasy basketball
+Project that webscrapes data off fantasydata.com and then uses a machine learning algorithm to predict next year's winners for fantasy basketball stats
