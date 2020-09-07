@@ -4,18 +4,23 @@
 # import selenium
 from selenium import webdriver
 # from selenium.webdriver.common.keys import Keys
-# from selenium.webdriver.common.by import By
-# from selenium.webdriver.support.ui import WebDriverWait
-# from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
 
+# Options used to ignore SSL errors and Certificate errors that occur when webscraping
+PATH = "C:\Program Files (x86)\chromedriver.exe"
+options = webdriver.ChromeOptions()
+options.add_argument('--ignore-certificate-errors')
+options.add_argument('--ignore-ssl-errors')
+driver = webdriver.Chrome(PATH, options=options)
 
 # Global variables used
-PATH = "C:\Program Files (x86)\chromedriver.exe"
-driver = webdriver.Chrome(PATH)
 WEBSITE = "https://fantasydata.com/nba/fantasy-basketball-leaders?scope=1&season=2020&seasontype=3&conference=1"
-LOAD_TIME = 10  # Amount of time needed to load the website
+LOAD_TIME = 8  # Amount of time needed to load the website
 ROW_AMOUNT = 300  # The number of rows per webpage
 NUM_CATEGORIES = 16  # This is excluding player name and ranking and team and positions and games
+
 
 # Class used for webscraping
 class Webscrape:
@@ -23,11 +28,18 @@ class Webscrape:
     def __init__(self, driver):
         self.driver = driver
 
-    def navigation(self, driver):
-        driver.get(WEBSITE)
-        driver.implicitly_wait(LOAD_TIME)
-        self.driver.find_element_by_link_text("300").click()
-        driver.implicitly_wait(LOAD_TIME)
+    def navigation(self):
+        self.driver.get(WEBSITE)
+        self.driver.implicitly_wait(LOAD_TIME)
+        try:
+            element = WebDriverWait(self.driver, 15).until(EC.presence_of_element_located((By.LINK_TEXT, "300")))
+            element.click()
+        except:
+            print("Couldn't find 300 button")
+            self.driver.quit()
+        self.driver.maximize_window()
+        self.driver.implicitly_wait(LOAD_TIME)
+        # self.driver.set_page_load_timeout(LOAD_TIME)
 
     @staticmethod
     def merge(list1, list2):
@@ -50,45 +62,59 @@ class Webscrape:
                 basketball_ranking = element.find_element_by_class_name("ng-binding").text
                 basketball_ranking_list.append(basketball_ranking)
                 count = count + 1
-        return (basketball_ranking_list, basketball_name_list)
+        return basketball_ranking_list, basketball_name_list
 
     def get_basketball_stats(self):
-        count = 0
-        basketball_stats_list = []
-        basketball_player_stats_list = []
+        count_row = 0
+        count_column = 0
+        basketball_row_stats = []
+        basketball_column_stats = []
         # Used to locate the table where all the information is kept
         table = self.driver.find_element_by_css_selector("div.k-grid-content.k-auto-scrollable")
         # Used to find all rows elements
         rows = table.find_elements_by_class_name("ng-scope")
         '''
         I'm going to split this up into 3 components:
-        1 is for the team name
-        2 is for the position and number of games
-        3 is for everything else to the right of it '''
-        # Part 1
+        Part 1 is for the team name (has an a tag)
+        Part 2 is for the position and number of games (has span tags)
+        Part 3 is for everything else to the right of it (has no extra tags)'''
 
-        while count < 1:
+        ''' Change 3 on line 83 to NUM_CATEGORIES after done testing for this function'''
+        while count_row < 3:
             # Used to find all the column elements in each individual row
             for row in rows:
                 columns = row.find_elements_by_tag_name("td")
                 # Inspects each column element and gets the text from it
                 for column in columns:
-                    column_stat = column.find_element_by_tag_name("a").text
-                    # Uses temporary list to put all of one player's info in one list
-                    basketball_player_stats_list.append(column_stat)
+                    # Part 1
+                    if count_column < 1:
+                        column_stat = column.find_element_by_tag_name("a").text
+                        # Uses temporary list to put all of one player's info in one list
+                        basketball_column_stats.append(column_stat)
+                        count_column = count_column + 1
+                    # Part 2
+                    elif 1 <= count_column < 3:
+                        column_stat = column.find_element_by_tag_name("span").text
+                        # Uses temporary list to put all of one player's info in one list
+                        basketball_column_stats.append(column_stat)
+                        count_column = count_column + 1
+                    # Part 3
+                    else:
+                        column_stat = column.text
+                        # Uses temporary list to put all of one player's info in one list
+                        basketball_column_stats.append(column_stat)
                 # Puts all the players info into a list of lists
-                basketball_stats_list.append(basketball_player_stats_list)
-                count = count + 1
-        return (basketball_stats_list)
-
-
+                basketball_row_stats.append(basketball_column_stats)
+                count_row = count_row + 1
+        return basketball_row_stats
 
 
 Test_1 = Webscrape(driver)
-Test_1.navigation(driver)
+Test_1.navigation()
 # rankings, names = Test_1.get_basketball_lists()
 # print(Test_1.merge(rankings, names))
-Test_1.get_basketball_stats()
+stats = Test_1.get_basketball_stats()
+print(stats)
 
 # element = self.browser.find_element_by_css_selector("li.active a")
 # print element.text
