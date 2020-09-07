@@ -13,16 +13,19 @@ PATH = "C:\Program Files (x86)\chromedriver.exe"
 options = webdriver.ChromeOptions()
 options.add_argument('--ignore-certificate-errors')
 options.add_argument('--ignore-ssl-errors')
+# DesiredCapabilities handlSSLErr = DesiredCapabilities.chrome ()
+# handlSSLErr.setCapability (CapabilityType.ACCEPT_SSL_CERTS, true)
 driver = webdriver.Chrome(PATH, options=options)
 
 # Global variables used
 WEBSITE = "https://fantasydata.com/nba/fantasy-basketball-leaders?scope=1&season=2020&seasontype=3&conference=1"
 LOAD_TIME = 8  # Amount of time needed to load the website
+WAIT_TIME = 5  # Amount of time I allocate to allow the website to wait
 ROW_AMOUNT = 300  # The number of rows per webpage
-NUM_CATEGORIES = 16  # This is excluding player name and ranking and team and positions and games
+NUM_CATEGORIES = 19  # This is excluding player name and ranking and team and positions and games
 
 
-# Class used for webscraping
+# Class used for Web scraping
 class Webscrape:
 
     def __init__(self, driver):
@@ -38,8 +41,8 @@ class Webscrape:
             print("Couldn't find 300 button")
             self.driver.quit()
         self.driver.maximize_window()
-        self.driver.implicitly_wait(LOAD_TIME)
-        # self.driver.set_page_load_timeout(LOAD_TIME)
+        self.driver.implicitly_wait(WAIT_TIME)
+        # self.driver.set_page_load_timeout(WAIT_TIME)
 
     @staticmethod
     def merge(list1, list2):
@@ -72,19 +75,21 @@ class Webscrape:
         # Used to locate the table where all the information is kept
         table = self.driver.find_element_by_css_selector("div.k-grid-content.k-auto-scrollable")
         # Used to find all rows elements
-        rows = table.find_elements_by_class_name("ng-scope")
+        rows = table.find_elements_by_css_selector("tr.ng-scope")
+
         '''
         I'm going to split this up into 3 components:
         Part 1 is for the team name (has an a tag)
         Part 2 is for the position and number of games (has span tags)
-        Part 3 is for everything else to the right of it (has no extra tags)'''
+        Part 3 is for everything else to the right of it (has no extra tags)
+        '''
 
-        ''' Change 3 on line 83 to NUM_CATEGORIES after done testing for this function'''
+        ''' Change 3 on next line to NUM_CATEGORIES after done testing for this function'''
         while count_row < 3:
             # Used to find all the column elements in each individual row
             for row in rows:
                 columns = row.find_elements_by_tag_name("td")
-                # Inspects each column element and gets the text from it
+                # Inspects each column element and gets the text from the column
                 for column in columns:
                     # Part 1
                     if count_column < 1:
@@ -94,17 +99,18 @@ class Webscrape:
                         count_column = count_column + 1
                     # Part 2
                     elif 1 <= count_column < 3:
-                        column_stat = column.find_element_by_tag_name("span").text
+                        column_stat = column.find_element_by_class_name("ng-binding").text
                         # Uses temporary list to put all of one player's info in one list
                         basketball_column_stats.append(column_stat)
                         count_column = count_column + 1
                     # Part 3
                     else:
-                        column_stat = column.text
+                        column_stat = column.find_element_by_xpath(".").text
                         # Uses temporary list to put all of one player's info in one list
                         basketball_column_stats.append(column_stat)
                 # Puts all the players info into a list of lists
                 basketball_row_stats.append(basketball_column_stats)
+                count_column = 0
                 count_row = count_row + 1
         return basketball_row_stats
 
@@ -115,27 +121,6 @@ Test_1.navigation()
 # print(Test_1.merge(rankings, names))
 stats = Test_1.get_basketball_stats()
 print(stats)
-
-# element = self.browser.find_element_by_css_selector("li.active a")
-# print element.text
-
-
-
-# players = [driver.find_elements_by_css_selector('tr.k-alt ng-scope')]
-# print(players)
-# try:
-#     for player in players:
-#
-#         element = WebDriverWait(driver, 20).until(
-#             EC.presence_of_element_located((By.LINK_TEXT, "Giannis Antetokounmpo"))) #EC = expected conditions
-#         print(element.link_text)
-# except:
-#     driver.quit()
-
-# print("About to quit")
-#
-# driver.implicitly_wait(5)
-# driver.quit()
 
 # if __name__ == "__main__":
 #     main.py()
