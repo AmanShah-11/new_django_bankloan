@@ -1,0 +1,30 @@
+
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <title>Title</title>-->
+<!--</head>-->
+<!--<body>-->
+<!--    <h1>About</h1>-->
+<!--    <p>This is a template</p>-->
+<!--</body>-->
+{% extends 'base.html' %}
+{% block content %}
+<h1>About</h1>
+<p>This is a template</p>
+<p>
+    {{my_text}}, {{my_number}}
+    {{my_list}}
+</p>
+
+<ul>
+    <li>Item1</li>
+    <li>Item2</li>
+</ul>
+<ul>
+{% for my_sub_item in my_list %}
+    <li>{{ forloop.counter }} {{my_sub_item}}</li>
+{% endfor %}
+</ul>
+{% endblock content %}
