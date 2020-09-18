@@ -94,6 +94,7 @@ class Webscrape:
                     # Part 1
                     if count_column < 1:
                         column_stat = column.find_element_by_tag_name("a").text
+                        print(column_stat)
                         # Uses temporary list to put all of one player's info in one list
                         basketball_column_stats.append(column_stat)
                         count_column = count_column + 1
@@ -101,13 +102,15 @@ class Webscrape:
                     elif 1 <= count_column < 3:
                         column_stat = column.find_element_by_class_name("ng-binding").text
                         # Uses temporary list to put all of one player's info in one list
+                        print(column_stat)
                         basketball_column_stats.append(column_stat)
                         count_column = count_column + 1
                     # Part 3
                     else:
-                        column_stat = column.find_element_by_xpath(".").text
+                        # column_stat = column.find_element_by_xpath(".").text
                         # Uses temporary list to put all of one player's info in one list
-                        basketball_column_stats.append(column_stat)
+                        print(column_stat)
+                        basketball_column_stats.append(column.text)
                 # Puts all the players info into a list of lists
                 basketball_row_stats.append(basketball_column_stats)
                 count_column = 0
